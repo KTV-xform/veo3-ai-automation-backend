@@ -102,11 +102,18 @@ let TelegramService = TelegramService_1 = class TelegramService {
         if (order.status !== 'PROCESSING') {
             throw new Error(`Đơn hàng đang ở trạng thái: ${order.status}`);
         }
-        const adminUser = await this.prisma.user.findFirst({
+        let adminUser = await this.prisma.user.findFirst({
             where: { role: 'ADMIN' },
         });
         if (!adminUser) {
-            throw new Error('Không tìm thấy admin');
+            adminUser = await this.prisma.user.create({
+                data: {
+                    email: 'system@veo3ai.com',
+                    name: 'System Admin',
+                    password: 'TELEGRAM_SYSTEM_USER_NO_LOGIN',
+                    role: 'ADMIN',
+                },
+            });
         }
         const result = await this.prisma.$transaction(async (tx) => {
             const license = await this.licensesService.create({

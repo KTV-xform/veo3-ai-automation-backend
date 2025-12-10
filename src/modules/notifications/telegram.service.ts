@@ -122,13 +122,19 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       throw new Error(`Đơn hàng đang ở trạng thái: ${order.status}`);
     }
 
-    // Get admin user (first admin in system for now)
-    const adminUser = await this.prisma.user.findFirst({
+    let adminUser = await this.prisma.user.findFirst({
       where: { role: 'ADMIN' },
     });
 
     if (!adminUser) {
-      throw new Error('Không tìm thấy admin');
+      adminUser = await this.prisma.user.create({
+        data: {
+          email: 'system@veo3ai.com',
+          name: 'System Admin',
+          password: 'TELEGRAM_SYSTEM_USER_NO_LOGIN', // Not a real password hash
+          role: 'ADMIN',
+        },
+      });
     }
 
     // Create license and update order
